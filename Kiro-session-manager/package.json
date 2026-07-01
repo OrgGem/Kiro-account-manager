@@ -1,0 +1,23 @@
+{
+  "name": "kiro-session-manager",
+  "version": "1.0.0",
+  "description": "Standalone CLI for Kiro authentication and token refresh",
+  "main": "dist/cli.js",
+  "bin": {
+    "kiro-session": "dist/cli.js"
+  },
+  "scripts": {
+    "start": "ts-node src/cli.ts",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "undici": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}
