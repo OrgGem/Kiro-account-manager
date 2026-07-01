@@ -1,7 +1,7 @@
 # Kiro Session Manager
 
 Kiro Session Manager là một công cụ dòng lệnh (CLI) độc lập, được trích xuất từ lõi của Kiro-account-manager. Công cụ này chuyên chịu trách nhiệm xử lý các thao tác:
-- Đăng nhập vào hệ thống AWS SSO Enterprise thông qua Device Code Auth.
+- Đăng nhập vào hệ thống AWS SSO Enterprise thông qua **IAM Identity Center PKCE** (mặc định) hoặc **Device Code Auth** (fallback).
 - Tự động duy trì và làm mới (auto-refresh) token để đảm bảo phiên làm việc (session) không bị gián đoạn.
 - Đồng bộ token trực tiếp vào file cấu hình gốc (`~/.aws/sso/cache/kiro-auth-token.json`) tương thích hoàn toàn với Kiro IDE.
 - Hỗ trợ kết nối qua HTTP/HTTPS Proxy dành cho các môi trường mạng nội bộ hoặc bị giới hạn.
@@ -42,21 +42,32 @@ kiro-session config
 
 ### 2. Đăng nhập (SSO Login)
 
-Lệnh này sẽ khởi tạo quy trình xác thực thiết bị (Device Auth Flow).
+Lệnh `login` hỗ trợ hai luồng xác thực:
+
+#### PKCE (mặc định) – IAM Identity Center browser redirect
+
+Đây là luồng xác thực chính, tương thích hoàn toàn với Kiro IDE. CLI sẽ:
+1. Đăng ký OIDC client với grant type `authorization_code`.
+2. Tạo PKCE code verifier/challenge và state.
+3. Khởi động một HTTP server cục bộ trên `127.0.0.1` (ephemeral port) để đón callback.
+4. Tự động mở trình duyệt đến trang đăng nhập AWS SSO. URL cũng được in ra terminal để bạn mở thủ công nếu cần.
+5. Sau khi bạn xác thực trên trình duyệt, AWS sẽ redirect về localhost, CLI nhận mã authorization code và trao đổi lấy token.
 
 ```bash
 # Sử dụng cấu hình mặc định đã lưu
 kiro-session login
 
-# Hoặc truyền tham số để ghi đè cấu hình hiện tại
-kiro-session login -u "https://other.awsapps.com/start" -r eu-central-1 -p "http://127.0.0.1:1080"
+# Hoặc truyền tham số trực tiếp
+kiro-session login -u "https://my-company.awsapps.com/start" -r us-east-1
 ```
 
-**Quá trình đăng nhập:**
-1. CLI sẽ gọi API AWS để lấy Device Code.
-2. CLI sẽ tự động mở trình duyệt web đến trang đăng nhập của AWS SSO.
-3. Nếu AWS yêu cầu, bạn sẽ cần xác nhận mã Device Code hiển thị trên Terminal vào trình duyệt.
-4. Sau khi bạn chấp thuận trên trình duyệt, CLI sẽ tự động nhận diện, lấy token thành công và lưu vào `~/.aws/sso/cache/kiro-auth-token.json`.
+#### Device Code (fallback)
+
+Nếu môi trường không hỗ trợ browser redirect (ví dụ: headless server), bạn có thể dùng Device Code flow:
+
+```bash
+kiro-session login --flow device
+```
 
 ### 3. Khởi chạy thông minh (Smart Start)
 
@@ -66,7 +77,7 @@ Bạn có thể dùng lệnh `start` để ứng dụng tự động kiểm tra 
 kiro-session start --interval 5
 ```
 
-- Nếu token chưa có hoặc đã hết hạn, ứng dụng sẽ tự động gọi luồng SSO Login.
+- Nếu token chưa có hoặc đã hết hạn và không thể refresh, ứng dụng sẽ tự động gọi luồng SSO Login.
 - Nếu token vẫn còn hạn, ứng dụng sẽ bỏ qua login và lập tức bắt đầu `start-refresh-loop`.
 
 ### 4. Vòng lặp làm mới Token độc lập (Auto-Refresh Loop)
@@ -89,4 +100,29 @@ Tiến trình này sẽ đọc token từ cache mỗi 5 phút. Nếu phát hiệ
 
 ```bash
 kiro-session --help
+```
+
+## Luồng xác thực (Authentication Flows)
+
+### PKCE Authorization Code (mặc định)
+
+```
+CLI ──► OIDC /client/register (authorization_code + refresh_token)
+     ──► Tạo PKCE code_verifier, code_challenge, state
+     ──► Khởi chạy HTTP server trên 127.0.0.1:<port>/oauth/callback
+     ──► Mở trình duyệt → /authorize?...&code_challenge=...
+     ──► User xác thực trên trình duyệt
+     ──► AWS redirect → 127.0.0.1:<port>/oauth/callback?code=...&state=...
+     ──► CLI validate state, exchange code → /token (authorization_code + codeVerifier)
+     ──► Lưu token + client registration vào ~/.aws/sso/cache/
+```
+
+### Device Code (fallback)
+
+```
+CLI ──► OIDC /client/register (device_code + refresh_token)
+     ──► /device_authorization → nhận deviceCode + userCode
+     ──► Mở trình duyệt + hiện userCode
+     ──► Poll /token cho đến khi user approve
+     ──► Lưu token + client registration vào ~/.aws/sso/cache/
 ```

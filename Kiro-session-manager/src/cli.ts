@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
-import { ssoDeviceAuth, refreshOidcToken } from './auth'
+import { ssoDeviceAuth, iamSsoPkceAuth, refreshOidcToken } from './auth'
 import { writeKiroAuthTokenFile, readKiroAuthTokenFile, readClientRegistration, KIRO_DEFAULT_START_URL, KiroAuthTokenFile } from './kiroAuthSync'
 import { readConfig, writeConfig } from './config'
 
@@ -38,11 +38,18 @@ async function performLogin(options: any) {
   const region = options.region || config.region || 'us-east-1'
   const startUrl = options.startUrl || config.startUrl || KIRO_DEFAULT_START_URL
   const proxyUrl = options.proxy || config.proxyUrl
+  const flow: string = options.flow || 'pkce'
 
-  console.log(`Starting SSO login in region ${region}...`)
+  console.log(`Starting SSO login in region ${region} (flow: ${flow})...`)
   if (proxyUrl) console.log(`Using proxy: ${proxyUrl}`)
 
-  const result = await ssoDeviceAuth('', region, startUrl, proxyUrl)
+  let result
+  if (flow === 'device') {
+    result = await ssoDeviceAuth('', region, startUrl, proxyUrl)
+  } else {
+    result = await iamSsoPkceAuth(region, startUrl, proxyUrl)
+  }
+
   if (!result.success || !result.accessToken || !result.refreshToken || !result.clientId || !result.clientSecret) {
     console.error('Login failed:', result.error || 'Missing required credentials')
     process.exit(1)
@@ -164,10 +171,11 @@ async function startRefreshLoop(options: any) {
 
 program
   .command('login')
-  .description('Login to AWS SSO Enterprise (Device Code Auth)')
+  .description('Login to AWS SSO Enterprise (IAM Identity Center)')
   .option('-r, --region <region>', 'SSO region (overrides config)')
   .option('-u, --startUrl <url>', 'SSO Start URL (overrides config)')
   .option('-p, --proxy <url>', 'Proxy URL (overrides config)')
+  .option('-f, --flow <flow>', 'Login flow: pkce (default, browser redirect) or device (device code)', 'pkce')
   .action(performLogin)
 
 program
@@ -183,6 +191,7 @@ program
   .option('-r, --region <region>', 'SSO region (overrides config)')
   .option('-u, --startUrl <url>', 'SSO Start URL (overrides config)')
   .option('-p, --proxy <url>', 'Proxy URL (overrides config)')
+  .option('-f, --flow <flow>', 'Login flow: pkce (default) or device', 'pkce')
   .option('-i, --interval <minutes>', 'Interval in minutes', '5')
   .action(async (options) => {
     const currentToken = await readKiroAuthTokenFile()
@@ -222,13 +231,16 @@ Examples:
   2. Xem cấu hình hiện tại:
      $ kiro-session config
 
-  3. Bắt đầu đăng nhập SSO:
+  3. Đăng nhập SSO (mặc định: PKCE browser redirect):
      $ kiro-session login
 
-  4. Chạy vòng lặp tự động làm mới token mỗi 5 phút (treo ở terminal):
+  4. Đăng nhập SSO bằng Device Code flow (fallback):
+     $ kiro-session login --flow device
+
+  5. Chạy vòng lặp tự động làm mới token mỗi 5 phút:
      $ kiro-session start-refresh-loop --interval 5
 
-  5. Khởi chạy thông minh (Tự động login nếu cần, sau đó start-refresh-loop):
+  6. Khởi chạy thông minh (Tự động login nếu cần, sau đó start-refresh-loop):
      $ kiro-session start --interval 5
 `)
 
