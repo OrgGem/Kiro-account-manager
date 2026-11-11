@@ -1,3 +1,4 @@
+
 # Kiro 账户管理器
 
 <p align="center">
@@ -26,6 +27,25 @@
 
 ---
 
+## 🌐 广告 | Swiftproxy 住宅代理
+
+<img width="1774" height="887" alt="632547d8a6f9064ac8496b6cda4f4d81" src="https://github.com/user-attachments/assets/3d91a903-1c66-434b-a8d6-e73342920e7d" />
+
+> **📢 广告推广 · Advertisement**
+>
+> **[Swiftproxy](https://www.swiftproxy.net/?ref=kiro)** 提供高质量动态和静态住宅代理，拥有 **9000 万+ 住宅 IP**，覆盖全球 **220+ 个地区**，支持 HTTP(S)、SOCKS5、IP 轮换与粘性会话。
+>
+> 无论是 **Kiro 账号管理、自动化注册还是多账号网络访问**，都能提供灵活的住宅代理支持。
+>
+> 💰 **动态住宅代理低至 $0.7/GB**
+>
+> 🎁 **专属优惠码：`PROXY90`，享受 9 折优惠**
+>
+> 👉 **[访问 Swiftproxy 官网 →](https://www.swiftproxy.net/?ref=kiro)**
+
+---
+
+
 ## ✨ 功能特性
 
 ### 🔐 多账号管理
@@ -33,6 +53,7 @@
 - 一键快速切换当前使用的账号
 - 支持 Builder ID 和 Social（Google/GitHub）登录方式
 - 批量导入导出账号数据
+
 
 ### 🔄 自动刷新
 - Token 过期前自动刷新，保持登录状态

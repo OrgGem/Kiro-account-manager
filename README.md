@@ -26,6 +26,22 @@
 
 ---
 
+## 🌐 Advertisement | Swiftproxy Residential Proxies
+
+<img width="1734" height="907" alt="f8b772e63d3e672af45d5c0f0d25ee54" src="https://github.com/user-attachments/assets/4dbf79d7-5498-4c8f-829b-6f66dabddc93" />
+
+> **📢 Sponsored Advertisement**
+>
+> **[Swiftproxy](https://www.swiftproxy.net/?ref=kiro)** offers high-quality rotating and static residential proxies, with **90M+ residential IPs** across **220+ locations worldwide**. Supporting **HTTP(S), SOCKS5, IP rotation, and sticky sessions**, Swiftproxy provides flexible proxy solutions for **Kiro account management, automation, and multi-account workflows**.
+>
+> 💰 **Rotating residential proxies starting at $0.7/GB**
+>
+> 🎁 **Exclusive Discount Code: `PROXY90` — Get 10% OFF!**
+>
+> 👉 **[Visit Swiftproxy Official Website →](https://www.swiftproxy.net/?ref=kiro)**
+
+---
+
 ## ✨ Features
 
 ### 🔐 Multi-Account Management
